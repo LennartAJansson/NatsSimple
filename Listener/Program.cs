@@ -3,13 +3,10 @@
 using NATS.Client.Core;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
-
-NatsConnection? connection;
-INatsJSContext? jetStreamContext;
-INatsJSStream? jetStream;
-INatsJSConsumer? consumer;
+using NATS.Net;
 
 using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
+ILogger<Program> logger = factory.CreateLogger<Program>();
 
 NatsOpts opts = NatsOpts.Default with
 {
@@ -17,10 +14,10 @@ NatsOpts opts = NatsOpts.Default with
   LoggerFactory = factory
 };
 
-connection = new NatsConnection(opts);
-jetStreamContext = new NatsJSContext(connection);
-jetStream = await jetStreamContext!.CreateStreamAsync(new StreamConfig("teststream", subjects: new string[] { "teststream.new" }));
-consumer = await jetStreamContext.CreateOrUpdateConsumerAsync("teststream", new ConsumerConfig("testconsumer2"));
+await using NatsClient client = new NatsClient(opts);
+INatsJSContext? jetStreamContext = client.CreateJetStreamContext();
+INatsJSStream? jetStream = await jetStreamContext!.CreateStreamAsync(new StreamConfig("teststream", subjects: new string[] { "teststream.new" }));
+INatsJSConsumer? consumer = await jetStreamContext.CreateOrUpdateConsumerAsync("teststream", new ConsumerConfig("testconsumer2"));
 
 CancellationTokenSource cts = new();
 
@@ -30,12 +27,12 @@ Console.CancelKeyPress += (_, e) =>
   cts.Cancel();
 };
 
-//Read all items from the channel.
-await foreach (NatsJSMsg<string> jsMsg in consumer!.ConsumeAsync<string>(cancellationToken: cts.Token))
+await foreach (NatsJSMsg<string> jsMsg in consumer!.ConsumeAsync<string>()
+  .WithCancellation(cts.Token))
 {
   if (jsMsg.Data is not null)
   {
-    Console.WriteLine($"Received message: {jsMsg.Data}");
-    await jsMsg.AckAsync();
+    logger.LogInformation("Received message: {msg}", jsMsg.Data);
+    await jsMsg.AckAsync(cancellationToken: cts.Token);
   }
 }

@@ -1,13 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 
 using NATS.Client.Core;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
+using NATS.Net;
 
-NatsConnection? connection;
-INatsJSContext? jetStreamContext;
 using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
+ILogger<Program> logger = factory.CreateLogger<Program>();
 
 NatsOpts opts = NatsOpts.Default with
 {
@@ -15,11 +14,9 @@ NatsOpts opts = NatsOpts.Default with
   LoggerFactory = factory
 };
 
-connection = new NatsConnection(opts);
-jetStreamContext = new NatsJSContext(connection);
-
-_ = await jetStreamContext!.CreateStreamAsync(new StreamConfig("teststream", subjects: new string[] { "teststream.new" }));
-
+await using NatsClient? client = new NatsClient(opts);
+INatsJSContext? jetStreamContext = client.CreateJetStreamContext();
+INatsJSStream? jetStream = await jetStreamContext!.CreateStreamAsync(new StreamConfig("teststream", subjects: new string[] { "teststream.new" }));
 
 CancellationTokenSource cts = new();
 
@@ -31,9 +28,9 @@ Console.CancelKeyPress += (_, e) =>
 
 while (!cts.IsCancellationRequested)
 {
-  // Publish a message to the stream
   string message = $"Hello world {DateTime.Now}";
-  PubAckResponse ack = await jetStreamContext!.PublishAsync(subject: "teststream.new", data: message);
+  logger.LogInformation("Sending message: {msg}", message);
+  PubAckResponse ack = await jetStreamContext!.PublishAsync("teststream.new", message);
   ack.EnsureSuccess();
   await Task.Delay(5000);
 }
