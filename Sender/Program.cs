@@ -1,37 +1,22 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using NATS.Client.Hosting;
 
-using NATS.Client.Core;
-using NATS.Client.JetStream;
-using NATS.Client.JetStream.Models;
-using NATS.Net;
+using Sender;
 
-using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
-ILogger<Program> logger = factory.CreateLogger<Program>();
+HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-NatsOpts opts = NatsOpts.Default with
+builder.AddNats((opts) =>
 {
-  Url = "nats://nats.ubk3s:4222",
-  LoggerFactory = factory
-};
+  return opts with
+  {
+    Url = "nats://nats.ubk3s:4222",
+    LoggerFactory = builder.Services
+        .BuildServiceProvider()
+        .GetRequiredService<ILoggerFactory>()
+  };
+});
 
-await using NatsClient? client = new NatsClient(opts);
-INatsJSContext? jetStreamContext = client.CreateJetStreamContext();
-INatsJSStream? jetStream = await jetStreamContext!.CreateStreamAsync(new StreamConfig("teststream", subjects: new string[] { "teststream.new" }));
+builder.Services.AddHostedService<Worker>();
 
-CancellationTokenSource cts = new();
+IHost host = builder.Build();
 
-Console.CancelKeyPress += (_, e) =>
-{
-  e.Cancel = true;
-  cts.Cancel();
-};
-
-while (!cts.IsCancellationRequested)
-{
-  string message = $"Hello world {DateTime.Now}";
-  logger.LogInformation("Sending message: {msg}", message);
-  PubAckResponse ack = await jetStreamContext!.PublishAsync("teststream.new", message);
-  ack.EnsureSuccess();
-  await Task.Delay(5000);
-}
-
+await host.RunAsync();
