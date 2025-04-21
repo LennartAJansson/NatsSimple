@@ -1,6 +1,4 @@
-﻿using NATS.Client.Hosting;
-
-using Sender;
+﻿using Sender;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 

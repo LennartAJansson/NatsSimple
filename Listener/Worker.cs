@@ -26,7 +26,7 @@ internal sealed class Worker(ILogger<Worker> logger, INatsJSContext context)
         }
       }
 
-      await Task.Delay(5000, cancellationToken); 
+      await Task.Delay(5000, cancellationToken);
     }
   }
 }
