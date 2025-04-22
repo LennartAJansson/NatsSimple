@@ -1,4 +1,5 @@
 ﻿using Sender;
+using Sender.Nats;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 

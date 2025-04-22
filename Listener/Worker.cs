@@ -3,30 +3,22 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using NATS.Client.JetStream;
-using NATS.Client.JetStream.Models;
+using Listener.Nats;
 
-internal sealed class Worker(ILogger<Worker> logger, INatsJSContext context)
+internal sealed class Worker(ILogger<Worker> logger, INatsListenerService<string> service)
   : BackgroundService
 {
   protected override async Task ExecuteAsync(CancellationToken cancellationToken)
   {
-    // Create a stream and consumer if they do not exist, we assume the stream already exists
-    //INatsJSStream jetStream = await context.CreateStreamAsync(new StreamConfig("teststream", subjects: new string[] { "teststream.new" }), cancellationToken);
-    INatsJSConsumer consumer = await context.CreateOrUpdateConsumerAsync("teststream", new ConsumerConfig("testconsumer"), cancellationToken);
-
     while (!cancellationToken.IsCancellationRequested)
     {
-      await foreach (NatsJSMsg<string> jsMsg in consumer.ConsumeAsync<string>(cancellationToken: cancellationToken))
+      await foreach (string message in service.ListenAsync("teststream", "teststream.new", "testconsumer", cancellationToken: cancellationToken))
       {
-        if (jsMsg.Data is not null)
+        if (message is not null)
         {
-          logger.LogInformation("Received message: {msg}", jsMsg.Data);
-          await jsMsg.AckAsync(cancellationToken: cancellationToken);
+          logger.LogInformation("Received message: {msg}", message);
         }
       }
-
-      await Task.Delay(5000, cancellationToken);
     }
   }
 }

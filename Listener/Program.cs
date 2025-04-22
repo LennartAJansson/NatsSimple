@@ -1,4 +1,5 @@
 ﻿using Listener;
+using Listener.Nats;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
