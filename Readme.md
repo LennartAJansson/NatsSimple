@@ -9,4 +9,6 @@ Applikationerna använder en massa "Magic Strings", byt ut dem mot konfigurations
   
 Använd hellre denna förenklade version än den som finns i repot CQRSSample (den är överdrivet komplex genom sin implementation av NatsChannels).  
   
+Men tjuvkika gärna i Nats-implementationen i CQRSSample för lite uppslag av hantering utav konfiguration med mera. Titta gärna på INatsSerializer i det repo också så kan ni få lite uppslag till hur man kan förbättra detta förenklade exempel ytterligare.  
+
 Använd allt detta "AS-IS", det finns säkert tonvis av buggar, brister och en massa förbättringspotential.  
