@@ -4,9 +4,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-using NATS.Client.JetStream;
-using NATS.Client.JetStream.Models;
-
 using Sender.Nats;
 
 internal sealed class Worker(ILogger<Worker> logger, INatsSenderService service)

@@ -2,7 +2,6 @@
 
 using NATS.Client.Core;
 using NATS.Client.Hosting;
-using NATS.Client.JetStream;
 using NATS.Net;
 
 using Sender.Nats;
@@ -26,7 +25,7 @@ internal static class NatsExtensions
         .CreateJetStreamContext());
 
     //Register the NatsSenderService
-    builder.Services.AddTransient<INatsSenderService,NatsSenderService>();
+    _=builder.Services.AddTransient<INatsSenderService, NatsSenderService>();
 
     return builder;
   }

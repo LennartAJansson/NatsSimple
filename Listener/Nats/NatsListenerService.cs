@@ -1,4 +1,5 @@
 ﻿namespace Listener.Nats;
+
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -19,6 +20,7 @@ internal sealed class NatsListenerService<T>
     this.logger = logger;
     this.context = context;
   }
+
   public async IAsyncEnumerable<T> ListenAsync(string streamName, string subjectName, string consumerName,
     [EnumeratorCancellation] CancellationToken cancellationToken = default)
   {

@@ -4,7 +4,6 @@ using Listener.Nats;
 
 using NATS.Client.Core;
 using NATS.Client.Hosting;
-using NATS.Client.JetStream;
 using NATS.Net;
 
 internal static class NatsExtensions
@@ -26,7 +25,7 @@ internal static class NatsExtensions
         .CreateJetStreamContext());
 
     //Register the NatsListenerService
-    builder.Services.AddTransient<INatsListenerService<string>, NatsListenerService<string>>();
+    _=builder.Services.AddTransient<INatsListenerService<string>, NatsListenerService<string>>();
 
     return builder;
   }
